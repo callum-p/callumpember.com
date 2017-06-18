@@ -1,0 +1,100 @@
+param (
+    [string]$user,
+    [string]$pass,
+    [string]$server,
+    [string]$db,
+    [string]$newdb
+)
+
+$env:PSModulePath = $env:PSModulePath + ";C:\Program Files (x86)\Microsoft SQL Server\130\Tools\PowerShell\Modules\SQLPS"
+
+Function Get-DBConnection($username, $password, $server, $database) {
+    $connection = New-Object Microsoft.SqlServer.Management.Common.ServerConnection
+    $connection.LoginSecure = $False
+    $connection.Login = $username
+    $connection.Password = $password
+    $connection.DatabaseName = $database
+    $connection.ServerInstance = $server
+    return $connection
+}
+
+Function Copy-Database($username, $password, $server, $sourcedatabase, $targetdatabase) {
+    $connection = Get-DBConnection -Username $username -Password $password -Server $server -Database $sourcedatabase
+
+    $srv = New-Object Microsoft.SqlServer.Management.Smo.Server($connection)
+    $srv.Databases | ?{ $_.Name -eq $sourcedatabase } | %{
+        $error.clear()
+        $transfer = New-Object Microsoft.SqlServer.Management.Smo.Transfer($_)
+        $transfer.DestinationDatabase = $targetdatabase
+        $transfer.DestinationLoginSecure = $False
+        $transfer.DestinationServer = $server
+        $transfer.DestinationLogin = $username
+        $transfer.DestinationPassword = $password
+        $transfer.CopyAllDatabaseTriggers = $True
+        $transfer.CopyAllDefaults = $True
+        $transfer.CopyAllFullTextCatalogs = $True
+        $transfer.CopyAllUsers = $False
+        $transfer.CopyAllLogins = $False
+        $transfer.CopyAllObjects = $False
+        $transfer.CopyAllSchemas = $True
+        $transfer.CopyAllStoredProcedures = $True
+        $transfer.CopyAllTables = $True
+        $transfer.CopyAllUserDefinedFunctions = $True
+        $transfer.CopyAllUserDefinedTableTypes = $True
+        $transfer.CopyAllUserDefinedTypes = $True
+        $transfer.CopyAllUserDefinedDataTypes = $True
+        $transfer.CopyAllViews = $True
+        $transfer.CopyData = $True
+        $transfer.CopySchema = $True
+        $transfer.DropDestinationObjectsFirst = $True
+        $transfer.CreateTargetDatabase = $False
+        $transfer.Options.WithDependencies = $true
+        $transfer.Options.ContinueScriptingOnError = $true
+        $transfer.Options.IncludeHeaders = $True
+        $transfer.Options.DriAll = $True
+        $transfer.Options.Triggers = $True
+
+        Try {
+            $transfer.TransferData()
+        } Catch {
+            $error | select *
+        }
+    }
+}
+
+Function Fix-ASPState($username, $password, $server, $olddatabase, $newdatabase) {
+    $connection = Get-DBConnection -Username $username -Password $password -Server $server -Database $newdatabase
+    $srv = New-Object Microsoft.SqlServer.Management.Smo.Server($connection)
+    $srv.Databases | ?{ $_.Name -eq $newdatabase } | %{
+        $_.StoredProcedures | ?{ $_.Schema -eq "dbo" } | %{
+            $search = "\[$olddatabase\]"
+            $replace = "[$newdatabase]"
+            $_.TextBody = ($_.TextBody -Replace $search, $replace)
+            $_.Alter()
+        }
+    }
+}
+
+Function Database-Exists($username, $password, $server, $database) {
+    $result = Invoke-Sqlcmd -Query  "SELECT count(*) FROM master.dbo.sysdatabases WHERE name = '$database'" `
+        -ServerInstance $server  -Database 'master' -Username $user -Password $password
+    return [bool]$result.Column1
+}
+
+Function Create-Database($username, $password, $server, $database) {
+    $query = "CREATE DATABASE [$database] CONTAINMENT = NONE ON PRIMARY " + `
+        "( NAME = N'$database', FILENAME = N'D:\RDSDBDATA\DATA\$database.mdf' , SIZE = 5120KB , FILEGROWTH = 10%) " + `
+        "LOG ON " + `
+        "( NAME = N'$($database)_log', FILENAME = N'D:\RDSDBDATA\DATA\$($database)_log.ldf' , SIZE = 1024KB , FILEGROWTH = 10%)"
+    Invoke-Sqlcmd -Query $query -ServerInstance $server -Database 'master' `
+        -Username $user -Password $password
+    return (Database-Exists -Username $username -Password $password -Server $server -Database $database)
+}
+
+if (! (Database-Exists -Username $user -Password $pass -Server $server -Database $newdb)) {
+    Create-Database -Username $user -Password $pass -Server $server -Database $newdb | Out-Null
+    Copy-Database -Username $user -Password $pass -Server $server -SourceDatabase $db -TargetDatabase $newdb
+    if ($newdb -like "*ASPState*") {
+        Fix-ASPState -Username $user -Password $pass -Server $server -OldDatabase $db -NewDatabase $newdb
+    }
+}

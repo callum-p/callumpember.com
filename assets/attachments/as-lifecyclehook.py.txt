@@ -1,0 +1,107 @@
+import boto3
+import json
+import requests
+import os
+import time
+import sys
+
+# Define static variables
+queue_name = 'cp-test'
+region = 'ap-southeast-2'
+bucket_name = 'asdsadasd'
+bucket_file = '/OnTerminate.sh'
+role_arn = 'arn:aws:iam::133243243324:role/SQS_TEST'
+notify_arn = 'arn:aws:sqs:ap-southeast-2:356344352312:cp-test'
+
+# Define instance ID
+instance_id = requests.get('http://169.254.169.254/latest/meta-data/instance-id').text
+
+# Create EC2 client
+ec2 = boto3.client('ec2', region_name=region)
+
+# Create SQS client
+sqs = boto3.client('sqs', region_name=region)
+
+# Create AS client
+asc = boto3.client('autoscaling', region_name=region)
+
+# Get instance tags
+tags = ec2.describe_tags(
+  Filters = [{
+    'Name': 'resource-id',
+    'Values' : [ instance_id ]
+  }]
+)
+
+# Get ASG name
+asg_name = ''
+for tag in tags['Tags']:
+  if tag['Key'] == 'aws:autoscaling:groupName':
+    asg_name = tag['Value']
+  else:
+    continue
+
+# Exit script if instance is not in an ASG
+if asg_name == '':
+  sys.exit()
+
+# Create autoscaling lifecycle hook in case it doesn't exist
+asc.put_lifecycle_hook(
+  LifecycleHookName = "%s_hook" % asg_name,
+  AutoScalingGroupName = asg_name,
+  LifecycleTransition = 'autoscaling:EC2_INSTANCE_TERMINATING',
+  RoleARN = role_arn,
+  NotificationTargetARN = notify_arn,
+  DefaultResult = 'CONTINUE'
+)
+
+# Get queue url
+queue_url = sqs.get_queue_url(QueueName=queue_name)['QueueUrl']
+
+while 1:
+  # Load messages
+  response = sqs.receive_message(
+      QueueUrl = queue_url,
+      WaitTimeSeconds = 20,
+      MaxNumberOfMessages = 10
+  )
+
+  # Process messages
+  for message in response['Messages']:
+    try:
+      body = json.loads(message['Body'])
+    except:
+      continue
+
+    # Check that message is relating to autoscaling lifecycle terminate
+    if 'EC2InstanceId' in body:
+      if body['EC2InstanceId'] == instance_id and body['LifecycleTransition'] == 'autoscaling:EC2_INSTANCE_TERMINATING':
+
+        # Extend termination timeout
+        asc.record_lifecycle_action_heartbeat(
+          LifecycleHookName = body['LifecycleHookName'],
+          AutoScalingGroupName = body['AutoScalingGroupName'],
+          LifecycleActionToken = body['LifecycleActionToken'],
+        )
+
+        # Cleanup by deleting message from queue
+        sqs.delete_message(QueueUrl = queue_url, ReceiptHandle = message['ReceiptHandle'])
+
+        # Execute command
+        os.system("aws s3 cp s3://%s%s /tmp" % (bucket_name, bucket_file))
+        os.system("chmod +x /tmp/%s" % bucket_file)
+        os.system("/tmp/%s" % bucket_file)
+
+        # Complete ASG hook
+        asc.complete_lifecycle_action(
+          LifecycleHookName = body['LifecycleHookName'],
+          AutoScalingGroupName = body['AutoScalingGroupName'],
+          LifecycleActionToken = body['LifecycleActionToken'],
+          LifecycleActionResult = 'CONTINUE'
+        )
+
+        sys.exit()
+    else:
+      sqs.change_message_visibility(QueueUrl = queue_url, ReceiptHandle = message['ReceiptHandle'], VisibilityTimeout = 0)
+
+  time.sleep(30)

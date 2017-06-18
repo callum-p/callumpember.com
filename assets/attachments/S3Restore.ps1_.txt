@@ -1,0 +1,84 @@
+$server = $env:SQL_SERVER
+$user = $env:SQL_USER
+$pass = $env:SQL_PASSWORD
+$bucket = $env:BUCKET
+$suffix = "_Preprod"
+
+$dbs = @{
+    "Database1" = 0
+    "Database2" = 0
+    "Application" = 0
+    "Security" = 0
+}
+
+# Drop databases
+ForEach ($db in $($dbs.Keys)) {
+    if ($db -eq "ASPState") {
+        (& SQLCMD -S $server -U $user -P $pass -W -r0 -h -1 -Q "ALTER DATABASE [$db] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$db];" 2>&1) | Out-Null
+    } else {
+        (& SQLCMD -S $server -U $user -P $pass -W -r0 -h -1 -Q "ALTER DATABASE [$db$suffix] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$db$suffix];" 2>&1) | Out-Null
+    }
+}
+
+# Start restores
+ForEach ($db in $($dbs.Keys)) {
+    if ($db -ne "ASPState") {
+        $output = (& SQLCMD -S $server -U $user -P $pass -W -r0 -h -1 -Q "exec msdb.dbo.rds_restore_database  @restore_db_name='$($db)$($suffix)', @s3_arn_to_restore_from='arn:aws:s3:::$bucket/$db.bak';") | Out-String
+    } else {
+        $output = (& SQLCMD -S $server -U $user -P $pass -W -r0 -h -1 -Q "exec msdb.dbo.rds_restore_database  @restore_db_name='$($db)', @s3_arn_to_restore_from='arn:aws:s3:::$bucket/$db.bak';") | Out-String
+    }
+    $found = $output -match "Task Id\: (\d+)"
+    if ($found) {
+        $dbs[$db] = [int]$matches[1]
+    } else {
+        Write-Host "[$(Get-Date -format G)] Couldn't find task id for $($db)."
+        $host.SetShouldExit(1)
+        exit
+    }
+}
+
+# Wait for restores to finish
+$status = $dbs.Clone()
+ForEach ($db in $($status.Keys)) {
+    $status[$db] = $False
+}
+
+while (1) {
+    $can_exit = $True
+    ForEach ($db in $($dbs.Keys)) {
+        If ($status[$db] -eq $True) {
+            Continue
+        }
+
+        $output = (& SQLCMD -S $server -U $user -P $pass -W -r0 -h -1 -Q "exec msdb.dbo.rds_task_status @task_id = $($dbs[$db])") | Out-String
+        $found = $output -match "(CREATED|IN_PROGRESS)"
+        if ($found) {
+            Write-Host "[$(Get-Date -format G)] Status for $($db): $($matches[1])"
+            $status[$db] = $False
+        }
+
+        $found = $output -match "(SUCCESS)"
+        if ($found) {
+            Write-Host "[$(Get-Date -format G)] DB $($db) completed."
+            $status[$db] = $True
+        }
+
+        $found = $output -match "(CANCELLED|CANCEL_REQUESTED|ERROR)"
+        if ($found) {
+            Write-Host "[$(Get-Date -format G)] Error restoring database $db"
+            $host.SetShouldExit(1)
+            exit
+        }
+    }
+
+    ForEach ($db in $($status.Keys)) {
+        if ($status.Item($db) -ne $True) {
+            $can_exit = $False
+        }
+    }
+
+    if ($can_exit -eq $True) {
+        break
+    }
+    Start-Sleep -s 10
+}
