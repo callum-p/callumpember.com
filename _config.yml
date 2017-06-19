@@ -3,13 +3,14 @@ title: callumpember.com
 description: "A blog about technology"
 baseurl: "" # for test: remove string '/space-jekyll-templa' to ''
 url: "https://www.callumpember.com"
+
 # User settings
 username: Callum Pember
 user_title: DevOps Engineer
 email: callum@callumpember.com
 github_username: callum-p
 linkedin_url: "https://linkedin.com/in/callum-pember-ba261660"
-disqus_username: callumpember
+disqus_username: callumpember-com
 profile_picture: /assets/img/profile.jpg
 
 # Build settings
