@@ -1,0 +1,114 @@
+<html>
+<head>
+  <title>Greentext Generator</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <h1>Greentext Generator</h1>
+    </div>
+    <div class="row">
+      <form>
+        <div class="form-group">
+          <label for="txtSubject">Subject</label>
+          <input type="text" class="form-control" id="txtSubject" name="txtSubject" placeholder="Post Subject">
+        </div>
+        <div class="form-group">
+          <label for="txtDate">Date</label>
+          <input type="text" class="form-control" id="txtDate" name="txtDate" placeholder="Post Date" value="05/06/17(Sat)00:07:06">
+        </div>
+        <div class="form-group">
+          <label for="txtUserId">User ID</label>
+          <input type="text" class="form-control" id="txtUserId" name="txtUserId" placeholder="User ID" value="Bg9BS7Xl">
+        </div>
+        <div class="form-group">
+          <label for="txtPostId">Post ID</label>
+          <input type="text" class="form-control" id="txtPostId" name="txtPostId" placeholder="Post ID" value="1242056756">
+        </div>
+        <div class="form-group">
+          <label for="txtImageFilename">Image Filename</label>
+          <input type="text" class="form-control" id="txtImageFilename" name="txtImageFilename" placeholder="Image Filename" value="image.jpg">
+        </div>
+        <div class="form-group">
+          <label for="txtImageMetadata">Image Size &amp; Dimensions</label>
+          <input type="text" class="form-control" id="txtImageMetadata" name="txtImageMetadata" placeholder="Image Metadata" value="733 KB, 1600x1131">
+        </div>
+        <div class="form-group">
+          <label for="txtImageUrl">Image URL</label>
+          <input type="text" class="form-control" id="txtImageUrl" name="txtImageUrl" placeholder="Image URL" value="https://i.imgur.com/BYJgdtZ.jpg">
+        </div>
+        <div class="form-group">
+          <label for="txtPostContent">Post Content</label>
+          <textarea class="form-control" rows="8" id="txtPostContent" name="txtPostContent">
+Red pill me on X. (with no extra content or input of your own)
+Are X white?
+Is X degeneracy?
+How come X girls love Y guys so much?
+If X is true, then how come Y? Checkmate Z.</textarea>
+        </div>
+        <button type="submit" class="btn btn-default">Generate</button>
+      </form>
+    </div>
+    <div class="form-group" id="divGenerated">
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    $('#divGenerated').load('./greentext-frame.html');
+
+    $("#txtSubject").on('input', function() {
+      var subject = $("#txtSubject").val();
+      $("#divGenerated").find("#subject").text(subject);
+    });
+
+    $("#txtDate").on('input', function() {
+      var subject = $("#txtDate").val();
+      $("#divGenerated").find("#date").text(subject);
+    });
+
+    $("#txtUserId").on('input', function() {
+      var subject = $("#txtUserId").val();
+      $("#divGenerated").find("#userid").text(subject);
+    });
+
+    $("#txtImageFilename").on('input', function() {
+      var subject = $("#txtImageFilename").val();
+      $("#divGenerated").find("#filename").text(subject);
+    });
+
+    $("#txtImageMetadata").on('input', function() {
+      var subject = $("#txtImageMetadata").val();
+      $("#divGenerated").find("#imagemetadata").text(subject);
+    });
+
+    $("#txtImageUrl").on('input', function() {
+      var subject = $("#txtImageUrl").val();
+      $("#divGenerated").find("#imageurl").attr("src", subject);
+    });
+
+    $("#txtPostContent").on('input', function() {
+      var lines = $("#txtPostContent").val().split('\n');
+      var newContent = "";
+      $.each(lines, function() {
+        newContent += '<span class="gt-quote">&gt;' + this + '</span><br>';
+      });
+      newContent = newContent.substring(0, newContent.length-1);
+      $("#divGenerated").find("#postMessage").html(newContent);
+    });
+
+    $("#txtPostId").on('input', function() {
+      var subject = $("#txtPostId").val();
+      $("#divGenerated").find("#postid").text(subject);
+      $("#divGenerated").find("#postid").text(subject);
+      $("#divGenerated").find(".postid").text(subject);
+      $("#divGenerated").find(".postidspan").text(">>" + subject);
+    });
+  </script>
+</body>
+</html>
