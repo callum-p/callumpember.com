@@ -11,9 +11,12 @@ description: 'How to use GHPRB with a scripted Jenkins Pipeline'
 categories:
 - Jenkins
 ---
+
+**Update: I'd suggest anyone reading this post to use a GitHub organization with multi-branch pipelines rather than the GHPRB plugin below.**
+
 Ever since I began converting the Jenkins jobs at my organization to scripted pipelines, I've been frustrated that the GitHub Pull Request Builder plugin only has documentation for using it in a declarative pipeline.  Several Google searches lead me to various GitHub open issues, but it didn't seem like anyone was really using this functionality.  After finally giving into frustration I decided to dedicate some time to it and get it working.  Below is a working example of a Jenkins scripted pipeline using GHPRB.
 
-{% highlight java %}
+{% highlight java linenos %}
 #!/bin/groovy
 import org.kohsuke.github.GHCommitState;
 
