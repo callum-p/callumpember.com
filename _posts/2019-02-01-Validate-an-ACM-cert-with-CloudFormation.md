@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Validating an ACM cert with CloudFormation"
+title:  "Validating an ACM certificate with CloudFormation"
 image: ''
 date: 2019-02-01 00:10:09
 tags:
@@ -8,7 +8,7 @@ tags:
 - Lambda
 - Python
 - ACM
-description: 'Using a CloudFormation Custom Resource to validate an ACM cert also created by CloudFormation'
+description: 'Using a CloudFormation Custom Resource to validate an ACM certificate also created by CloudFormation'
 categories:
 - AWS
 ---
