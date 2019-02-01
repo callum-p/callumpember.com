@@ -28,8 +28,6 @@ Parameters:
     Type: String
   domainName:
     Type: String
-  parentStackName:
-    Type: String
 
 Resources:
   certificate:
