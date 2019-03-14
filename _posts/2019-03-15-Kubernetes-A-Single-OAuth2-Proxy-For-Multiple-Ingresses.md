@@ -26,6 +26,7 @@ Out of the box, sadly yes. But with a slight modification of the deployment, we 
 
 - Attach an nginx sidecar container to the oauth2_proxy deployment. This container will redirect to anything after `/redirect/` in the request URI.
 - Make the oauth2_proxy have it's own domain
+- Add an upstream to oauth2_proxy for the /redirect path
 - Set the cookie domain in oauth2_proxy to include all subdomains
 - Setup a GitHub OAuth2 app and point it at the oauth2_proxy domain
 - In the ingresses that we want to protect, use the following annotations (replace $DNS_ZONE_INTERNAL with your own domain):
