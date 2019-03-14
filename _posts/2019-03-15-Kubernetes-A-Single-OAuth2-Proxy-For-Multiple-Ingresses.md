@@ -16,7 +16,7 @@ One of my favorite ways is to use [oauth2_proxy](https://github.com/pusher/oauth
 
 Now, onto some oauth2_proxy details. You can use various different providers, like GitHub, Google, GitLab, LinkedIn, Azure and Facebook. What's one thing nearly every developer in the world has in common? They almost certainly have a GitHub account, so that's what I use as a provider normally.  There are some strict rules though around GitHub OAuth2 and redirection:
 
-![GitHub OAuth2 Redirection rules](/assets/attachments/github-oauth-redirection-rules.png)
+![GitHub OAuth2 Redirection rules](/assets/attachments/github-oauth2/github-oauth-redirection-rules.png)
 
 What this means is that if you are using oauth2_proxy as-is, you need a separate deployment for each domain you want to secure.
 

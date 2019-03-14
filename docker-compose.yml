@@ -8,3 +8,4 @@ services:
   build:
     extends: jekyll
     command: jekyll build --future
+    working_dir: /src/jekyll
