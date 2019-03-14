@@ -49,7 +49,7 @@ If you want to use it, you'd need to replace all the variables. I personally use
 
 ### Ingress example
 
-Once you've got the deployment above working, you can protect an ingress like so (key takeaways are the annotatoins):
+Once you've got the deployment above working, you can protect an ingress like so (key takeaways are the annotations):
 
 {% highlight yaml %}
 ---
