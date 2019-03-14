@@ -1,0 +1,10 @@
+version: '2'
+services:
+  jekyll:
+    image: jekyll/jekyll
+    volumes:
+      - .:/src/jekyll
+
+  build:
+    extends: jekyll
+    command: jekyll build --future
