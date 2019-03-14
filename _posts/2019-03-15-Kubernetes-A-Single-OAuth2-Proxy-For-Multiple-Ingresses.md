@@ -30,10 +30,12 @@ Out of the box, sadly yes. But with a slight modification of the deployment, we 
 - Setup a GitHub OAuth2 app and point it at the oauth2_proxy domain
 - In the ingresses that we want to protect, use the following annotations (replace $DNS_ZONE_INTERNAL with your own domain):
 
-```
+{% highlight yaml %}
+---
 nginx.ingress.kubernetes.io/auth-url: "https://oauth2.$DNS_ZONE_INTERNAL/oauth2/auth"
 nginx.ingress.kubernetes.io/auth-signin: "https://oauth2.$DNS_ZONE_INTERNAL/oauth2/start?rd=/redirect/$http_host$request_uri"
-```
+
+{% endhighlight %}
 
 
 ### oauth2_proxy deployment:
