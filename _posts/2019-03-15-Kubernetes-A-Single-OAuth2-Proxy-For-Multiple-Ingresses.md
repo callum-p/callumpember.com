@@ -45,7 +45,7 @@ Here is a full, working (at least in my cluster) deployment spec for oauth2_prox
 
 If you want to use it, you'd need to replace all the variables. I personally use envsubst in my deployment pipelines for this. The variables that need replacing are `$DNS_ZONE_INTERNAL` `$OAUTH2_CLIENT_ID` `$OAUTH2_CLIENT_SECRET` and you would want to set your GitHub org.
 
-[Full Deployment Spec](/assets/attachments/github-oauth2/full-deployment.yml)
+[Full Deployment Spec](/assets/attachments/github-oauth2/full-deployment.yml.txt)
 
 
 ### Ingress example

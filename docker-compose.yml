@@ -7,5 +7,5 @@ services:
 
   build:
     extends: jekyll
-    command: jekyll build --future
+    command: jekyll build --future -V
     working_dir: /src/jekyll
