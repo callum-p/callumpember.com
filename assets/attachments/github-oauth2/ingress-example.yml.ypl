@@ -10,7 +10,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx-public"
     nginx.ingress.kubernetes.io/auth-url: "https://oauth2.$DNS_ZONE_INTERNAL/oauth2/auth"
-    nginx.ingress.kubernetes.io/auth-signin: "https://oauth2.$DNS_ZONE_INTERNAL/oauth2/start?rd=/redirect/$http_host$request_uri"
+    nginx.ingress.kubernetes.io/auth-signin: "https://oauth2.$DNS_ZONE_INTERNAL/oauth2/start?rd=/redirect/$http_host$escaped_request_uri"
 spec:
   rules:
   - host: "prometheus.$DNS_ZONE_INTERNAL"

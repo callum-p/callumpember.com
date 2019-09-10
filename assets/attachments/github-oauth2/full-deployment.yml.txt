@@ -23,7 +23,7 @@ data:
         }
 
         location ~ /redirect/(.*) {
-          return 307 https://$1?$args;
+          return 307 https://$1$is_args$args;
         }
       }
     }
