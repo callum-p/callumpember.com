@@ -13,15 +13,15 @@ categories:
 - DynamoDB
 - Data Pipeline
 ---
-As per best practice, I have a seperate AWS account that is strictly locked down to store all my backups. In my production account, every DynamoDB table deployed gets it’s own Data Pipeline also, to export it nightly to a bucket in the backup account.
+I use a separate, locked-down AWS account for backups. Each production DynamoDB table has its own Data Pipeline for nightly exports to this backup account.
 
-One of my pet peeves with the AWS documentation for Data Pipeline DynamoDB exports is that the IAM role they create (and the example role) has full IAM S3 access, aka s3:\*. This wasn’t acceptable to me, as I wanted the backup account & bucket as locked down as possible.
+AWS documentation creates IAM roles with full S3 access (s3:*) for Data Pipeline DynamoDB exports. To maintain maximum restrictions on the backup account and bucket, I determined the minimum required permissions.
 
-After a VERY tedious process of figuring out what privileges EMR needed to backup – mostly through trial and error of looking at the EMR logs, and when that didn’t provide enough information, enabling S3 access logs on the bucket, the below policy is the minimum required to allow a DynamoDB Data Pipeline in account 467398596935, to export to a bucket in another arbitrary account.
+Through examining EMR logs and S3 access logs, here are the minimum permissions for a DynamoDB Data Pipeline in account 467398596935 to export cross-account.
 
-The bucket policy below assumes the export will be exporting data to arn:aws:s3:::my-backups-oregon/<date folder> and EMR/Data Pipeline logs going to arn:aws:s3:::my-backups-oregon/logs
+This policy assumes exports to `arn:aws:s3:::my-backups-oregon/<date folder>` and logs to `arn:aws:s3:::my-backups-oregon/logs`.
 
-Remember, in the account actually doing the backups, the IAM role for the Data Pipeline resources will need access to the backup bucket too.
+Note: The source account's Data Pipeline IAM role also needs backup bucket access.
 
 {% highlight json %}
 {
@@ -67,4 +67,4 @@ Remember, in the account actually doing the backups, the IAM role for the Data P
 }
 {% endhighlight %}
 
-A massive thanks to <a href="http://codevoyagers.com/2016/07/28/backing-up-an-amazon-web-services-dynamodb/">http://codevoyagers.com/2016/07/28/backing-up-an-amazon-web-services-dynamodb/</a>" for pointing me in the right direction of checking the S3 access logs.
+Thanks to <a href="http://codevoyagers.com/2016/07/28/backing-up-an-amazon-web-services-dynamodb/">this post</a> for pointing me toward checking S3 access logs.

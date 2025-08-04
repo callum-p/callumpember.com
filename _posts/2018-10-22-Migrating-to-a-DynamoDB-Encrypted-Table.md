@@ -11,24 +11,22 @@ description: 'Migrating from a non-encrypted DynamoDB table to a new encrypted t
 categories:
 - AWS
 ---
-With the recent general availability of encryption-at-rest for DynamoDB tables, of course I wanted to enable it on our company tables, but there was a catch - you can't simply enable it on existing DynamoDB tables, you can only enable it when provisioning a new table. Such is life on AWS. I needed to figure out a migration plan.
+DynamoDB encryption-at-rest is now available, but you can't enable it on existing tables—only new ones. Here's my migration approach:
 
-In the end my plan looked something like this:
+1. Enable [DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html) on existing table
+2. Create encrypted duplicate table
+3. Lambda function copies stream items to new table
+4. Seed new table with existing data
+5. Update templates to reference new table
+6. Delete old table
 
-1. Update our existing DynamoDB template to enable [DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)
-2. Create a duplicate of our table with encryption enabled
-3. Create a Lambda function which the stream will trigger, which will copy items to the new table
-4. Seed the new table with data, if required
-5. Update any templates to point to the new table instead of the old one.
-6. Finally, delete the old table
+Four-stage deployment prevents data loss:
+* **Stage 1**: Deploy both tables with replication
+* **Stage 2**: [Populate encrypted table with tool](https://github.com/bchew/dynamodump)
+* **Stage 3**: Update services to use encrypted table
+* **Stage 4**: Remove old table
 
-To re-iterate the above to be more clear: this has to be a four stage process so you don't lose any data.
-* Stage one: deploy template with both tables running side by side and replication
-* Stage two: [populate encrypted table using something like this](https://github.com/bchew/dynamodump)
-* Stage three: Update the template and/or any other services referencing the original table to instead reference the new encrypted table
-* Stage four: Finally, delete the old table
-
-For the case of this article, let's assume our original DynamoDB template looks like this:
+Original template:
 
 {% highlight yaml %}
 DynamoDbUsers:
@@ -45,7 +43,7 @@ DynamoDbUsers:
       WriteCapacityUnits: 1
 {% endhighlight %}
 
-After doing everything mentioned above, it now looks like:
+Migration template:
 
 {% highlight yaml %}
 dynamoDbUsers:

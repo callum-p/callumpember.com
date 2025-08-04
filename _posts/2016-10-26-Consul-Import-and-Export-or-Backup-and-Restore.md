@@ -11,9 +11,9 @@ description: ''
 categories:
 - Consul
 ---
-Recently I had an issue where I needed to export my Consul K/V store, delete the cluster then restore the data that was in the store.  A quick Google didn’t return any copy-paste results.  I was in a bit of a rush at the time and thankfully the store only had about 15 entries so I did it manually.  I’ve had to do it a few more times since then but now I’ve fixed my auto-scaling cluster nodes so they leave gracefully when they are terminated.
+I needed to export my Consul K/V store, delete the cluster, then restore the data. Finding no ready-made solutions, I initially did it manually for ~15 entries. After repeating this process several times, I wrote a script (and fixed auto-scaling nodes to leave gracefully).
 
-Anyway, here is the python required to do a backup and/or restore of Consul:
+Python code for Consul backup/restore:
 
 {% highlight python %}
 import json

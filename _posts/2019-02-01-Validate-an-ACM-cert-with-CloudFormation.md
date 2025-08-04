@@ -12,13 +12,9 @@ description: 'Using a CloudFormation Custom Resource to validate an ACM certific
 categories:
 - AWS
 ---
-Creating ACM certificates via CloudFormation is cool, but validation isn't.
+Creating ACM certificates via CloudFormation is easy, but validation is tedious.
 
-The below template will create the ACM certificate and a Lambda custom resource.
-
-The custom resource will poll the CloudFormation stack waiting for the ACM certificate resource to output an event with the DNS validation record details.
-
-Once the event has been emitted, the custom resource will go on to create the required DNS records for validation.  Once ACM has performed it's validation, the stack will finish creating successfully.
+This template automates ACM certificate validation using a Lambda custom resource. The Lambda polls CloudFormation stack events for DNS validation details, creates the required records, and completes when ACM validates the certificate.
 
 {% highlight yaml %}
 Description: Deploys an ACM certificate and DNS validation records

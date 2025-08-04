@@ -10,18 +10,21 @@ description: ''
 categories:
 - S3
 ---
-I’ve had my AWS account for a few years now.  Back when I first made it I wasn’t too concerned with bucket policies, IAM policies and roles and the rest of it. I was just excited to use AWS and get familiar with it and find out what the big deal was.  One of the first things I did was setup backups of my personal computer to S3.
+When I first started with AWS, I wasn't concerned with bucket policies, IAM policies and roles. I was just excited to explore AWS and immediately set up backups of my personal computer to S3.
 
-Fast forward two years and I check my S3 bucket to see what I’ve got in there – oh look, there is a document I need.  So I paste the URL of the S3 object into the browser and it loads straight away.  Wait a minute….. I shouldn’t be able to access that!
+Two years later, I needed a document from my S3 bucket. I pasted the URL into the browser and it loaded straight away. Wait – I shouldn't be able to access that!
 
-Enter the face palm.  I had my S3 bucket with all my passport scans, medical information, driver’s license scans and who knows what else open to the public for years!  It was a serious reality check and I locked it down immediately.
+My S3 bucket with passport scans, medical information, driver's license scans and more had been publicly accessible for years. I locked it down immediately.
 
-After that incident I got curious. I said to myself, “if I did that when I was an AWS noob, I wonder what other people have done?”.  I had the idea to have a peek at what S3 buckets are available without proper permissions on them.  My “friend” decided to create a script that does the following:
+This incident made me curious about how many other S3 buckets might have improper permissions. A script was created that:
 
-Loads a dictionary file with an English wordlist
-Loop through each word that is greater than 3 letters (minimum bucket length), check that bucket exists
-If bucket exists, attempt to list objects in the bucket.  Continue on exception, attempt to download one file if successful.
-There is some error checking involved in this of course, for example: you get a different error if the bucket doesn’t exist, compared to if it is in another region.
-It was staggering how many buckets are open to the public – not just static assets, either, but people’s and business’s personal files.  Unfortunately my “friend” doesn’t have the script anymore (damn Slack free version history!), most people will be able to recreate it themselves – it was only about 40 lines.
+1. Loads a dictionary file with an English wordlist
+2. Loops through each word greater than 3 letters (minimum bucket length)
+3. Checks if that bucket name exists
+4. If it exists, attempts to list objects and download a file
 
-Anyway, in conclusion, it was a serious wakeup call and I advise you to check your own bucket permissions.
+The error checking distinguishes between non-existent buckets and buckets in different regions.
+
+The results were staggering – many buckets are publicly accessible, containing not just static assets but personal and business files. The script was about 40 lines of code.
+
+This was a serious wake-up call. Check your bucket permissions.

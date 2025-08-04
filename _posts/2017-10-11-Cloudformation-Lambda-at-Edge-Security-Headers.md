@@ -11,9 +11,9 @@ description: 'How to use Lambda@Edge for custom HTTP headers'
 categories:
 - AWS
 ---
-A while ago I had to add some security related headers to the ui CloudFront distribution at my organization.  The lambda@edge documentation at the time had examples that didn't work after the service was promoted from beta to GA.
+Adding security headers to our CloudFront distribution required Lambda@Edge. The documentation examples broke after the service moved from beta to GA.
 
-To help future me, I've added an example lambda function that can be tied to a distribution, below:
+Working Lambda function for CloudFront distributions:
 
 {% highlight yaml %}
 ---

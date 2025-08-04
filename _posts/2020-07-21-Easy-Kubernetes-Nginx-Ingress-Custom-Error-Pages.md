@@ -13,11 +13,9 @@ categories:
 - Ingress
 ---
 
-I recently encountered a problem where my Kubernetes resources weren't showing the same outage page as my regular EC2 resources. I realized this was because of ingress-nginx.
+Kubernetes resources showed different outage pages than EC2 resources due to ingress-nginx.
 
-There are a few solutions out there suggesting deploying a docker container to show the error page required, but that was overkill for me.
-
-I've found that the easiest way to create a custom error page, is by adding something similar to the below to your ingress object:
+While some suggest deploying Docker containers for error pages, there's a simpler solution—add this to your ingress:
 
 ```yaml
 ---
